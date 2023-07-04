@@ -190,10 +190,12 @@ public interface Record extends Serializable, EvalContext {
 
     /**
      * gets field and transforms Object[] to arraylist in case
+     * @deprecated use getAsList
      *
      * @param field
      * @return
      */
+    @Deprecated
     default List asList( String field ) {
         Object val = get(field);
         if ( val instanceof Object[] ) {
@@ -209,7 +211,7 @@ public interface Record extends Serializable, EvalContext {
      * @param field
      * @return
      */
-    default Set asSet( String field ) {
+    default Set<Object> asSet( String field ) {
         Object val = get(field);
         if ( val instanceof Object[] ) {
             return new HashSet(Arrays.asList((Object[])val));
@@ -257,7 +259,7 @@ public interface Record extends Serializable, EvalContext {
      * @param field
      * @return
      */
-    default  <T> List<T> getAsList(String field ) {
+    default <T> List<T> getAsList(String field ) {
         return asList(field);
     }
 
