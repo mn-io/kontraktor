@@ -1,12 +1,11 @@
 package kontraktor;
 
 import org.junit.Ignore;
-import org.nustaq.kontraktor.*;
-import org.nustaq.kontraktor.IPromise;
-import org.nustaq.kontraktor.annotations.*;
-import org.nustaq.kontraktor.Promise;
 import org.junit.Test;
+import org.nustaq.kontraktor.*;
+import org.nustaq.kontraktor.annotations.InThread;
 import org.nustaq.kontraktor.impl.ActorBlockedException;
+import org.nustaq.kontraktor.impl.ActorProxyFactory;
 import org.nustaq.kontraktor.impl.DispatcherThread;
 import org.nustaq.kontraktor.util.Log;
 
