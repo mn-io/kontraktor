@@ -16,11 +16,14 @@ See https://www.gnu.org/licenses/lgpl.txt
 
 package org.nustaq.kontraktor.impl;
 
-import org.nustaq.kontraktor.*;
-import org.nustaq.kontraktor.annotations.AsCallback;
-import org.nustaq.kontraktor.annotations.CallerSideMethod;
 import javassist.*;
 import javassist.bytecode.AccessFlag;
+import org.nustaq.kontraktor.Actor;
+import org.nustaq.kontraktor.ActorProxy;
+import org.nustaq.kontraktor.Callback;
+import org.nustaq.kontraktor.IPromise;
+import org.nustaq.kontraktor.annotations.AsCallback;
+import org.nustaq.kontraktor.annotations.CallerSideMethod;
 import org.nustaq.kontraktor.annotations.Local;
 import org.nustaq.kontraktor.util.Log;
 import org.nustaq.serialization.util.FSTUtil;
@@ -63,9 +66,9 @@ import java.util.stream.Collectors;
  */
 public class ActorProxyFactory {
 
-    Map<Class,Class> generatedProxyClasses = new HashMap<Class, Class>();
-
-    protected static int verbosity = 0;
+    Map<Class,Class> generatedProxyClasses = new HashMap<>();
+    static Map<String,Integer> verbosityByProxyClassName = new HashMap<>();
+    static int defaultVerbosity = 0;
 
     public ActorProxyFactory() {
     }
@@ -74,8 +77,20 @@ public class ActorProxyFactory {
      * Set verbosity level of proxy generation
      * @param verbosity 0: off, 1: log public available methods , 2: log *all* public available methods
      */
-    public static void setVerbosity(int verbosity) {
-        ActorProxyFactory.verbosity = verbosity;
+    public static void setDefaultVerbosity(int verbosity) {
+        ActorProxyFactory.defaultVerbosity = verbosity;
+    }
+
+    /**
+     * Set verbosity level of proxy generation for certain Actor impl only
+     * This has a higher priority than global setVerbosity()
+     * @param verbosity 0: off, 1: log public available methods , 2: log *all* public available methods
+     */
+    @SafeVarargs
+    public static void setVerbosity(int verbosity, Class<? extends Actor>... clazz) {
+        for (Class<? extends Actor> aClass : clazz) {
+            verbosityByProxyClassName.put(aClass.getName(), verbosity);
+        }
     }
 
     public <T> T instantiateProxy(Actor target) {
@@ -204,6 +219,9 @@ public class ActorProxyFactory {
     protected void defineProxyMethods(CtClass cc, CtClass orig) throws Exception {
 //        cc.addMethod( CtMethod.make( "public void __setDispatcher( "+ DispatcherThread.class.getName()+" d ) { __target.__dispatcher(d); }", cc ) );
         CtMethod[] methods = getSortedPublicCtMethods(orig,false);
+
+        int localVerbosity = verbosityByProxyClassName.getOrDefault(orig.getName(), 0);
+        int verbosity = Math.max(defaultVerbosity, localVerbosity);
 
         for (int i = 0; i < methods.length; i++) {
             CtMethod method = methods[i];
